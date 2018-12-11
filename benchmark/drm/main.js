@@ -41,6 +41,7 @@ function main() {
 
     const path = require('path');
     const fs = require('fs-extra');
+    let logger = Util.getLogger('benchmark/drm/main.js');
     let absConfigFile;
     if(typeof configFile === 'undefined') {
         absConfigFile = path.join(__dirname, 'config.json');
@@ -49,7 +50,7 @@ function main() {
         absConfigFile = path.join(__dirname, configFile);
     }
     if(!fs.existsSync(absConfigFile)) {
-        Util.log('file ' + absConfigFile + ' does not exist');
+        logger.error('file ' + absConfigFile + ' does not exist');
         return;
     }
 
@@ -57,11 +58,10 @@ function main() {
     let absCaliperDir = path.join(__dirname, '../..');
     if(typeof networkFile === 'undefined') {
         try{
-            let config = require(absConfigFile);
-            absNetworkFile = path.join(absCaliperDir, config.blockchain.config);
+            absNetworkFile = path.join(absCaliperDir, 'benchmark/drm/fabric.json');
         }
         catch(err) {
-            Util.log('failed to find blockchain.config in ' + absConfigFile);
+            logger.error('failed to find blockchain.config in ' + absConfigFile);
             return;
         }
     }
@@ -69,13 +69,19 @@ function main() {
         absNetworkFile = path.join(__dirname, networkFile);
     }
     if(!fs.existsSync(absNetworkFile)) {
-        Util.log('file ' + absNetworkFile + ' does not exist');
+        logger.error('file ' + absNetworkFile + ' does not exist');
         return;
     }
 
 
     const framework = require('../../src/comm/bench-flow.js');
-    framework.run(absConfigFile, absNetworkFile);
+    (async () => {
+        try {
+            await framework.run(absConfigFile, absNetworkFile);
+        } catch (err) {
+            logger.error(`Error while executing the benchmark: ${err.stack ? err.stack : err}`);
+        }
+    })();
 }
 
 main();

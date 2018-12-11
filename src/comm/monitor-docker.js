@@ -9,7 +9,7 @@
 'use strict';
 
 const Util = require('./util.js');
-const log  = Util.log;
+const logger = Util.getLogger('monitor-docker.js');
 const MonitorInterface = require('./monitor-interface');
 
 /**
@@ -41,7 +41,7 @@ function findContainers() {
             if(name.indexOf('http://') === 0) {
                 let remote = url.parse(name, true);
                 if(remote.hostname === null || remote.port === null || remote.pathname === '/') {
-                    log('monitor-docker: unrecognized host, ' + name);
+                    logger.warn('monitor-docker: unrecognized host, ' + name);
                 }
                 else if(filterName.remote.hasOwnProperty(remote.hostname)) {
                     filterName.remote[remote.hostname].containers.push(remote.pathname);
@@ -63,7 +63,7 @@ function findContainers() {
         let p = this.si.dockerContainers('active').then((containers) => {
             let size = containers.length;
             if(size === 0) {
-                log('monitor-docker: could not find active local container');
+                logger.error('monitor-docker: could not find active local container');
                 return Promise.resolve();
             }
             if(filterName.local.indexOf('all') !== -1) {
@@ -83,7 +83,7 @@ function findContainers() {
 
             return Promise.resolve();
         }).catch((err) => {
-            log('Error(monitor-docker):' + err);
+            logger.error('Error(monitor-docker):' + err);
             return Promise.resolve();
         });
         promises.push(p);
@@ -98,7 +98,7 @@ function findContainers() {
         let p = docker.listContainers().then((containers) => {
             let size = containers.length;
             if(size === 0) {
-                log('monitor-docker: could not find remote container at ' + h);
+                logger.error('monitor-docker: could not find remote container at ' + h);
                 return Promise.resolve();
             }
 
@@ -120,7 +120,7 @@ function findContainers() {
             }
             return Promise.resolve();
         }).catch((err) => {
-            log('Error(monitor-docker):' + err);
+            logger.error('Error(monitor-docker):' + err);
             return Promise.resolve();
         });
         promises.push(p);
@@ -195,7 +195,7 @@ class MonitorDocker extends MonitorInterface {
                         let stat = results[i];
                         let id = stat.id;
                         if(id !== self.containers[i].id) {
-                            log('monitor-docker: inconsistent id');
+                            logger.warn('monitor-docker: inconsistent id');
                             continue;
                         }
                         if(self.containers[i].remote === null) {    // local
@@ -215,7 +215,8 @@ class MonitorDocker extends MonitorInterface {
                             let sysDelta = stat.cpu_stats.system_cpu_usage - stat.precpu_stats.system_cpu_usage;
                             if(cpuDelta > 0 && sysDelta > 0) {
                                 if(stat.cpu_stats.cpu_usage.hasOwnProperty('percpu_usage') && stat.cpu_stats.cpu_usage.percpu_usage !== null) {
-                                    self.stats[id].cpu_percent.push(cpuDelta / sysDelta * stat.cpu_stats.cpu_usage.percpu_usage.length * 100.0);
+                                    // self.stats[id].cpu_percent.push(cpuDelta / sysDelta * stat.cpu_stats.cpu_usage.percpu_usage.length * 100.0);
+                                    self.stats[id].cpu_percent.push(cpuDelta / sysDelta * MonitorDocker.coresInUse(stat.cpu_stats) * 100.0);
                                 }
                                 else {
                                     self.stats[id].cpu_percent.push(cpuDelta / sysDelta * 100.0);
@@ -237,6 +238,7 @@ class MonitorDocker extends MonitorInterface {
                     }
                     self.isReading = false;
                 }).catch((err) => {
+                    logger.error(err);
                     self.isReading = false;
                 });
             }
@@ -335,5 +337,30 @@ class MonitorDocker extends MonitorInterface {
     getNetworkHistory(key) {
         return {'in': this.stats[key].netIO_rx, 'out':this.stats[key].netIO_tx};
     }
+
+    /**
+     * count the cpu core in real use
+     * @param {json} cpu_stats the statistics of cpu
+     * @return {number}  the number core in real use
+     */
+    static coresInUse(cpu_stats) {
+        return cpu_stats.online_cpus || MonitorDocker.findCoresInUse(cpu_stats.cpu_usage.percpu_usage || []);
+    }
+
+    /**
+     * count the cpu core in real use
+     * @param {array} percpu_usage the usage cpu array
+     * @return {number} the the percpu_usage.length
+     */
+    static findCoresInUse(percpu_usage) {
+        percpu_usage = percpu_usage.filter((coreUsage) => {
+            if (coreUsage > 0) {
+                return (coreUsage);
+            }
+        });
+        return percpu_usage.length;
+    }
+
+
 }
 module.exports = MonitorDocker;
