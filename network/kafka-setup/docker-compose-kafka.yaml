@@ -42,7 +42,7 @@ services:
     restart: always
     container_name: kafka0
     environment:
-      - KAFKA_ADVERTISED_HOST_NAME=localhost
+      - KAFKA_ADVERTISED_HOST_NAME=192.168.201.142
       - KAFKA_ADVERTISED_PORT=9092
       - KAFKA_BROKER_ID=0
       - KAFKA_MIN_INSYNC_REPLICAS=2
@@ -69,7 +69,7 @@ services:
     restart: always
     container_name: kafka1
     environment:
-      - KAFKA_ADVERTISED_HOST_NAME=localhost
+      - KAFKA_ADVERTISED_HOST_NAME=192.168.201.142
       - KAFKA_ADVERTISED_PORT=8092
       - KAFKA_BROKER_ID=1
       - KAFKA_DEFAULT_REPLICATION_FACTOR=3
@@ -96,7 +96,7 @@ services:
     restart: always
     container_name: kafka2
     environment:
-      - KAFKA_ADVERTISED_HOST_NAME=localhost
+      - KAFKA_ADVERTISED_HOST_NAME=192.168.201.142
       - KAFKA_ADVERTISED_PORT=7092
       - KAFKA_BROKER_ID=2
       - KAFKA_DEFAULT_REPLICATION_FACTOR=3

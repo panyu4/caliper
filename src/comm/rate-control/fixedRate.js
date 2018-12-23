@@ -55,6 +55,9 @@ class FixedRate extends RateInterface {
     * @return {Promise} the return promise
     */
     applyRateControl(start, idx, currentResults) {
+        if(idx % 500 === 0){
+            return Sleep(5);
+        }
         if(this.sleepTime === 0) {
             return Promise.resolve();
         }
