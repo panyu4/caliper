@@ -9,13 +9,11 @@ test:
   rounds:
   - label: open
     txNumber:
-    - 1000
-    - 1000
-    - 1000
+    - 30000
     rateControl:
     - type: fixed-rate
       opts:
-        tps: 50
+        tps: 2500
     - type: fixed-rate
       opts:
         tps: 100

@@ -23,7 +23,7 @@ const txStatus =  require('iroha-lib/pb/endpoint_pb.js').TxStatus;
 const pbTransaction = require('iroha-lib/pb/block_pb.js').Transaction;
 const pbQuery = require('iroha-lib/pb/queries_pb.js').Query;
 const endpointGrpc = require('iroha-lib/pb/endpoint_grpc_pb.js');
-const util = require('../comm/util.js');
+const util = require('../../comm/util.js');
 const logger = util.getLogger('iroha.js');
 const BlockchainInterface = require('../../comm/blockchain-interface.js');
 const irohaType = require('./type.js');
@@ -85,6 +85,7 @@ function irohaCommand(client, account, time, keys, commands) {
                 return new Promise((resolve, reject) => {
                     client.torii(txProto, (err, data) => {
                         if(err){
+                            console.log('txHasg not OK!');
                             reject(err);
                         }
                         else {
@@ -206,6 +207,7 @@ class Iroha extends BlockchainInterface {
             let result = [];
             let promises = [];
             let node = this._findNode();
+            console.log('node troii: '+node.torii);
             let grpcCommandClient = new endpointGrpc.CommandServiceClient(node.torii, grpc.credentials.createInsecure());
             let grpcQueryClient   = new endpointGrpc.QueryServiceClient(node.torii, grpc.credentials.createInsecure());
 
@@ -351,6 +353,7 @@ class Iroha extends BlockchainInterface {
 
                 let node = this._findNode();
                 contexts[args.id].torii = node.torii;
+                console.log('node.torii: '+node.torii);
                 contexts[args.id].contract = fakeContracts;
             }
 

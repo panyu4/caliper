@@ -733,6 +733,8 @@ async function sendTransaction(context, signedTransaction, invokeStatus, startTi
             errFlag |= TxErrorEnum.OrdererResponseError;
             invokeStatus.SetFlag(errFlag);
             invokeStatus.SetErrMsg(TxErrorIndex.OrdererResponseError,err.toString());
+            invokeStatus.SetStatusFail();
+            return invokeStatus;
         }
 
         invokeStatus.Set('time_order', Date.now());
