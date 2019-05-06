@@ -2,25 +2,25 @@
 test:
   clients:
     type: local
-    number: 1
+    number: 5
   rounds:
   - label: open
     txNumber:
-    - 50
+    - 5000
     rateControl:
     - type: fixed-rate
       opts:
-        tps: 50
+        tps: 500
     arguments:
       money: 10000
     callback: benchmark/simple/open.js
   - label: query
     txNumber:
-    - 50
+    - 5000
     rateControl:
     - type: fixed-rate
       opts:
-        tps: 50
+        tps: 500
     callback: benchmark/simple/query.js
 monitor:
   type:
